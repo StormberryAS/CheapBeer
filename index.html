@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>CheapBeer | Cheapest Draft Pils in Norway</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="description" content="Find the cheapest draft pils beer in Norwegian bars. Crowdsourced, always up to date. Sort by price or price per litre." />
+
+  <!-- Local Fonts: Inter -->
+  <link rel="stylesheet" href="fonts/inter/inter.css" />
+
+  <!-- Cloudflare Turnstile -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       HEADER / HERO
+  ============================================================ -->
+  <header class="site-header">
+    <div class="header-glow"></div>
+    <div class="header-content">
+      <!-- Beer mug icon (inline SVG) -->
+      <div class="beer-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="18" width="36" height="38" rx="5" fill="url(#beerGrad)" stroke="#c87d10" stroke-width="1.5"/>
+          <path d="M44 28 Q58 28 58 37 Q58 46 44 46" stroke="#c87d10" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <ellipse cx="26" cy="17" rx="19" ry="7" fill="#fff8dc"/>
+          <ellipse cx="16" cy="15" rx="6" ry="5" fill="white"/>
+          <ellipse cx="28" cy="13" rx="7" ry="5" fill="white"/>
+          <ellipse cx="39" cy="15" rx="5" ry="4" fill="white"/>
+          <circle cx="18" cy="38" r="2" fill="rgba(255,255,255,0.25)"/>
+          <circle cx="28" cy="45" r="1.5" fill="rgba(255,255,255,0.2)"/>
+          <circle cx="34" cy="32" r="2" fill="rgba(255,255,255,0.2)"/>
+          <defs>
+            <linearGradient id="beerGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#f5a623"/>
+              <stop offset="100%" stop-color="#c07010"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <div class="header-text">
+        <h1>CheapBeer</h1>
+        <p class="tagline">CHEAPEST DRAFT PILSNER · NORWAY<br>crowdsourced &amp; always fresh</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+  ============================================================ -->
+  <main class="main-container">
+
+    <!-- ---- FILTER / SORT BAR ---- -->
+    <section class="card filter-card" aria-label="Filter and sort options">
+
+      <div class="filter-row">
+
+        <!-- City filter -->
+        <div class="field-group filter-group">
+          <label for="city-filter">City</label>
+          <select id="city-filter" class="select-input">
+            <option value="">All cities</option>
+          </select>
+        </div>
+
+        <!-- Sort -->
+        <div class="field-group filter-group">
+          <label for="sort-select">Sort by</label>
+          <select id="sort-select" class="select-input">
+            <option value="price_per_litre">Price / litre</option>
+            <option value="price">Price (NOK)</option>
+            <option value="size_l">Size</option>
+            <option value="bar_name">Bar name</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Stats bar -->
+      <div id="stats-bar" class="stats-bar" hidden>
+        <span id="stats-count" class="stat-item"></span>
+        <span id="stats-updated" class="stat-item"></span>
+      </div>
+
+    </section>
+
+    <!-- ---- RESULTS TABLE ---- -->
+    <section class="card table-card" aria-label="Beer prices">
+
+      <!-- Loading state -->
+      <div id="table-loading" class="table-state">
+        <div class="spinner"></div>
+        <p>Loading prices&hellip;</p>
+      </div>
+
+      <!-- Error state -->
+      <p id="table-error" class="error-msg" role="alert" hidden></p>
+
+      <!-- Table (revealed after load) -->
+      <div id="table-wrapper" class="table-wrapper" hidden>
+        <table class="beer-table" aria-label="Cheapest draft pils">
+          <thead>
+            <tr>
+              <th class="col-bar sortable" data-sort="bar_name">
+                Bar
+                <svg class="sort-icon" viewBox="0 0 10 14" fill="currentColor" aria-hidden="true"><path d="M5 0l4 5H1L5 0zm0 14L1 9h8l-4 5z"/></svg>
+              </th>
+              <th class="col-city">City</th>
+              <th class="col-size sortable" data-sort="size_l">
+                Size
+                <svg class="sort-icon" viewBox="0 0 10 14" fill="currentColor" aria-hidden="true"><path d="M5 0l4 5H1L5 0zm0 14L1 9h8l-4 5z"/></svg>
+              </th>
+              <th class="col-price sortable active-sort" data-sort="price" aria-sort="ascending">
+                Price
+                <svg class="sort-icon" viewBox="0 0 10 14" fill="currentColor" aria-hidden="true"><path d="M5 0l4 5H1L5 0zm0 14L1 9h8l-4 5z"/></svg>
+              </th>
+              <th class="col-ppl sortable" data-sort="price_per_litre">
+                / litre
+                <svg class="sort-icon" viewBox="0 0 10 14" fill="currentColor" aria-hidden="true"><path d="M5 0l4 5H1L5 0zm0 14L1 9h8l-4 5z"/></svg>
+              </th>
+              <th class="col-updated">Verified</th>
+            </tr>
+          </thead>
+          <tbody id="beer-tbody">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ---- SUBMIT FORM ---- -->
+    <section class="card submit-card" aria-label="Submit a bar price">
+
+      <h2 class="section-title">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="section-icon">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+        </svg>
+        Add or update a price
+      </h2>
+      <p class="section-hint">Spotted a cheap pils? Share it. New bars require manual review. Price updates from 3 matching submissions are auto-approved.</p>
+
+      <form id="submit-form" novalidate>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="f-bar">Bar name <span class="required">*</span></label>
+            <input type="text" id="f-bar" class="text-input" placeholder="e.g. Bar Bados" maxlength="100" autocomplete="off" list="bar-names-list" required />
+            <datalist id="bar-names-list"></datalist>
+          </div>
+          <div class="field-group">
+            <label for="f-city">City <span class="required">*</span></label>
+            <input type="text" id="f-city" class="text-input" placeholder="e.g. Oslo" maxlength="60" required />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="f-address">Address <span class="required">*</span></label>
+          <input type="text" id="f-address" class="text-input" placeholder="e.g. Thorvald Meyers gate 30, Oslo" maxlength="200" required />
+        </div>
+
+        <div class="field-group">
+          <label for="f-website">Bar website (optional)</label>
+          <input type="url" id="f-website" class="text-input" placeholder="https://…" maxlength="200" />
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="f-size">Glass size (L) <span class="required">*</span></label>
+            <input type="number" id="f-size" class="text-input" placeholder="0.4" min="0.1" max="9.9" step="0.1" required />
+          </div>
+          <div class="field-group">
+            <label for="f-price">Price (NOK) <span class="required">*</span></label>
+            <input type="number" id="f-price" class="text-input" placeholder="89" min="1" max="999" step="1" required />
+          </div>
+        </div>
+
+        <!-- Cloudflare Turnstile widget -->
+        <div class="turnstile-wrapper">
+          <div class="cf-turnstile"
+               data-sitekey="0x4AAAAAADADdvMUn6NJO4CE"
+               data-theme="dark"></div>
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+          Submit price
+        </button>
+
+        <p id="submit-msg" class="submit-msg" hidden></p>
+
+      </form>
+
+    </section>
+
+  </main>
+
+        <section class="app-switcher-container">
+          <div class="container">
+            <h3 class="switcher-title">Explore the Stormberry Ecosystem</h3>
+            <div class="app-switcher-scroll">
+              <a href="https://stormberry.as/apps.html" class="switcher-card"><img src="https://stormberry.as/labs-favicon.svg" alt="Labs" style="width:32px;height:32px;opacity:0.9;"> <span>Stormberry Labs</span></a>
+              <a href="https://sun.stormberry.as" class="switcher-card"><img src="https://sun.stormberry.as/favicon.svg" alt="SunApp" style="width:32px;height:32px;opacity:0.9;"> <span>SunApp</span></a>
+              <a href="https://moon.stormberry.as" class="switcher-card"><img src="https://moon.stormberry.as/favicon.svg" alt="MoonApp" style="width:32px;height:32px;opacity:0.9;"> <span>MoonApp</span></a>
+            </div>
+          </div>
+        </section>
+
+  <!-- ============================================================
+       FOOTER — Stormberry branded
+  ============================================================ -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+
+      <!-- Brand -->
+      <div class="footer-brand">
+        <a href="https://stormberry.as" target="_blank" rel="noopener" class="footer-logo">
+          Stormberry<span class="footer-dot">.</span>
+        </a>
+        <p class="footer-tagline">Smarter sales. Global culture. AI-driven strategy.</p>
+      </div>
+
+      <!-- Powered-by attribution -->
+      <div class="footer-powered">
+        <p>Powered by
+          <a href="https://developers.google.com/sheets/api" target="_blank" rel="noopener">Google Sheets</a>,
+          <a href="https://www.cloudflare.com/products/turnstile/" target="_blank" rel="noopener">Cloudflare Turnstile</a>
+          &amp; <a href="https://workers.cloudflare.com" target="_blank" rel="noopener">Cloudflare Workers</a>.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="footer-bottom">
+
+      <div class="footer-social">
+              <a href="https://linkedin.com/company/StormberryAS" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg></a>
+              <a href="https://github.com/StormberryAS" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.26c3 0 6-2 6-6a4.6 4.6 0 0 0-1.39-3.23 4.1 4.1 0 0 0 0-3.24s-1.1-.35-3.5 1.25a11.3 11.3 0 0 0-6 0c-2.4-1.6-3.5-1.25-3.5-1.25a4.1 4.1 0 0 0 0 3.24A4.6 4.6 0 0 0 2 10.74c0 4 3 6 6 6a4.8 4.8 0 0 0-1 3.26v4"/><path d="M9 20c-4.1 1.4-5-2.5-5-2.5"/></svg></a>
+            </div>
+
+      <p>&copy; 2026 Stormberry A.S. All rights reserved.</p>
+      <p class="footer-privacy">Privacy First: We do not collect cookies or personal data.</p>
+      <p class="footer-ai">Proudly powered by sovereign AI agents.</p>
+
+    </div><!-- /footer-bottom -->
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
