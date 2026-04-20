@@ -26,6 +26,10 @@ In accordance with Stormberry's core principles:
 - **No tracking**: Zero analytics, cookies, or fingerprinting.
 - **Minimal footprint**: We don't ask for your location or personal data to use the app.
 
+## Disclaimer
+
+**Drink Responsibly.** CheapBeer is built solely as an independent data project for educational and informational purposes. Stormberry A.S. does not encourage, promote, or incentivize the consumption of alcohol. Always drink responsibly and in accordance with local laws.
+
 ---
 
 *Developed and maintained by [Stormberry A.S.](https://stormberry.as)*
