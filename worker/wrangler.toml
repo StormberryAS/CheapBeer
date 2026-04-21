@@ -3,7 +3,7 @@ main = "index.js"
 compatibility_date = "2024-01-01"
 
 # Deploy with:
-#   echo "0x4AAAAAADADdrklilVeVqLEPQJcGWD2pcs" | wrangler secret put TURNSTILE_SECRET_KEY
+#   wrangler secret put TURNSTILE_SECRET_KEY
 #   wrangler secret put GOOGLE_SERVICE_ACCOUNT_KEY
 #   wrangler secret put SHEET_ID
 #   wrangler deploy
