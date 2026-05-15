@@ -701,7 +701,7 @@ label {
   padding: 3rem 0;
   text-align: center;
   margin-top: 2rem;
-  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-top: 1px solid var(--border-color, var(--border, rgba(255,255,255,0.08)));
 }
 
 .switcher-title {
@@ -712,22 +712,31 @@ label {
   letter-spacing: -0.5px;
 }
 
-.app-switcher-scroll {
+.app-switcher-marquee {
   display: flex;
-  gap: 1rem;
-  overflow-x: auto;
+  overflow: hidden;
   padding-bottom: 1rem;
-  justify-content: center;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
+  width: 100%;
 }
-.app-switcher-scroll::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+
+.app-switcher-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+.app-switcher-marquee:hover .app-switcher-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-10%); }
 }
 
 .switcher-card {
-  background: var(--bg-secondary, rgba(14, 22, 48, 0.72));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  background: var(--bg-secondary, var(--bg-card, rgba(255,255,255,0.05)));
+  border: 1px solid var(--border-color, var(--border, rgba(255,255,255,0.08)));
   border-radius: 12px;
   padding: 1rem 1.5rem;
   display: flex;
@@ -741,17 +750,23 @@ label {
   transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
+  margin-right: 1rem;
 }
 
 .switcher-card:hover {
   transform: translateY(-3px);
-  background: var(--bg-tertiary, rgba(22, 34, 70, 0.85));
-  box-shadow: 0 4px 12px var(--shadow-color, rgba(0,0,0,0.3));
+  background: var(--bg-tertiary, var(--bg-card-hover, rgba(255,255,255,0.15)));
+  box-shadow: 0 4px 12px var(--shadow-color, var(--shadow-card, 0 8px 32px rgba(0,0,0,0.45)));
+}
+
+.switcher-card i {
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
 }
 
 @media (max-width: 768px) {
-  .app-switcher-scroll {
-    justify-content: flex-start;
+  .app-switcher-marquee {
     padding: 0.5rem 1rem 1.5rem 1rem;
   }
 }
