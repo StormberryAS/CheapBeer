@@ -1,36 +1,24 @@
-# CheapBeer | Cheapest Draft Pils in Norway
+# CheapBeer
 
-**CheapBeer** is a crowdsourced, community-driven application by **Stormberry A.S.** designed to track and find the cheapest draft pilsner beer across bars in Norway.
+Crowdsourced tracker for the cheapest draft pilsner across bars in Norway. Built by [Stormberry AS](https://stormberry.as).
 
-Live at **[beer.stormberry.as](https://beer.stormberry.as)**
-
----
+**Live:** [beer.stormberry.as](https://beer.stormberry.as)
 
 ## Features
+- **Crowdsourced database**: anyone can submit a price update. Prices are validated and auto-approved after three matching submissions.
+- **Advanced sorting**: filter by city, or sort by absolute price (NOK), size (L), or true value (price per litre).
+- **Spam protection**: integrated Cloudflare Turnstile, no intrusive captchas.
+- **Real-time data**: lightweight backend on Cloudflare Workers proxying a Google Sheets datastore.
 
-- **Crowdsourced Database**: Anyone can submit a price update. Prices are validated and auto-approved after 3 matching submissions.
-- **Advanced Sorting**: Filter by city, or sort the database by absolute price (NOK), size (L), or true value (Price per litre).
-- **Spam Protection**: Integrated with Cloudflare Turnstile to prevent automated abuse without intrusive captchas.
-- **Real-Time Data**: Powered seamlessly by a lightweight backend integrating Cloudflare Workers and Google Sheets API.
-
-## Technology Stack
-
-- Pure **HTML5 / CSS3 / JavaScript** frontend.
-- Stormberry's signature dark-mode glassmorphism design system, utilizing the Inter typeface.
-- **Backend**: Cloudflare Workers proxying to Google Sheets.
+## Architecture
+- **Vanilla HTML/CSS/JS** frontend, Stormberry dark-mode glassmorphism design system, Inter typography.
+- **Privacy first**, no analytics, no cookies, no fingerprinting, no location or personal data collected.
+- **Backend**: Cloudflare Workers proxying to a Google Sheets API.
 - **Security**: Cloudflare Turnstile.
+- **Sovereign AI**, built and maintained using high-speed agentic workflows.
 
-## Privacy First
+## Responsibility
+CheapBeer is an independent data project for educational and informational purposes. Stormberry AS does not encourage, promote, or incentivise the consumption of alcohol. Always drink responsibly and in accordance with local laws.
 
-In accordance with Stormberry's core principles:
-- **No tracking**: Zero analytics, cookies, or fingerprinting.
-- **Minimal footprint**: We don't ask for your location or personal data to use the app.
-
-## Disclaimer
-
-**Drink Responsibly.** CheapBeer is built solely as an independent data project for educational and informational purposes. Stormberry A.S. does not encourage, promote, or incentivize the consumption of alcohol. Always drink responsibly and in accordance with local laws.
-
----
-
-*Developed and maintained by [Stormberry A.S.](https://stormberry.as)*
-&copy; 2026 Stormberry A.S. All rights reserved.
+## Credits
+Built by [Stormberry AS](https://stormberry.as). Proudly powered by sovereign AI agents.
