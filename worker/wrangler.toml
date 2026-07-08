@@ -2,8 +2,15 @@ name = "cheapbeer-worker"
 main = "index.js"
 compatibility_date = "2024-01-01"
 
+# First-party price list lives in the GitHub repo; the Worker commits approved
+# submissions to it. Override any of these if the repo/path/branch changes.
+[vars]
+GH_OWNER = "StormberryAS"
+GH_REPO = "CheapBeer"
+GH_PATH = "prices.json"
+GH_BRANCH = "main"
+
 # Deploy with:
 #   wrangler secret put TURNSTILE_SECRET_KEY
-#   wrangler secret put GOOGLE_SERVICE_ACCOUNT_KEY
-#   wrangler secret put SHEET_ID
+#   wrangler secret put GITHUB_TOKEN     # fine-grained PAT, Contents:read+write on StormberryAS/CheapBeer only
 #   wrangler deploy

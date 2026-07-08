@@ -3,16 +3,19 @@
  *
  * Handles POST /submit:
  *  1. Verifies Cloudflare Turnstile token
- *  2. Appends the submission to a Google Sheet via Sheets API
+ *  2. Commits the submission (approved: false) to the first-party price list
+ *     prices.json in the GitHub repo via the Contents API. No Google.
  *
  * Required Worker secrets (set via `wrangler secret put`):
  *   TURNSTILE_SECRET_KEY  — from Cloudflare Turnstile dashboard
- *   GOOGLE_SERVICE_ACCOUNT_KEY  — JSON key for a Google Service Account
- *                                  that has Editor access to the Sheet
- *   SHEET_ID  — Google Spreadsheet ID (from its URL)
+ *   GITHUB_TOKEN          — fine-grained PAT scoped to Contents:read+write on
+ *                            the StormberryAS/CheapBeer repo only
+ * Optional vars (wrangler.toml [vars]; defaults shown):
+ *   GH_OWNER=StormberryAS  GH_REPO=CheapBeer  GH_PATH=prices.json  GH_BRANCH=main
  *
  * Deploy:
- *   npm install -g wrangler
+ *   wrangler secret put TURNSTILE_SECRET_KEY
+ *   wrangler secret put GITHUB_TOKEN
  *   wrangler deploy
  */
 
@@ -76,22 +79,21 @@ async function handleSubmit(request, env) {
     return jsonResponse({ success: false, message: 'Verification failed. Please try again.' }, 403);
   }
 
-  // Append to Google Sheet
+  // Commit the submission to the first-party price list on GitHub.
   try {
-    await appendToSheet(env, {
+    await appendToGitHub(env, {
       bar_name: sanitizeText(bar_name),
-      city: sanitizeText(city),
-      address: sanitizeText(address),
       website: website || '',
+      address: sanitizeText(address),
+      maps_url: '',            // filled during review
+      city: sanitizeText(city),
       size_l: size,
       price_nok: price,
-      price_per_litre: Math.round((price / size) * 10) / 10,
-      approved: 'FALSE',
+      approved: false,         // new submissions await review
       last_verified: new Date().toISOString().slice(0, 10),
-      submitted_at: new Date().toISOString(),
     });
   } catch (err) {
-    console.error('Sheet append failed:', err);
+    console.error('GitHub commit failed:', err);
     return jsonResponse({ success: false, message: 'Could not save submission. Please try again later.' }, 500);
   }
 
@@ -110,81 +112,63 @@ async function verifyTurnstile(token, secret, request) {
   return data.success === true;
 }
 
-// ── Google Sheets append ───────────────────────────────────────
-async function appendToSheet(env, row) {
-  const sheetId  = env.SHEET_ID;
-  const keyJson  = JSON.parse(env.GOOGLE_SERVICE_ACCOUNT_KEY);
-  const token    = await getGoogleAccessToken(keyJson);
-  const range    = 'submissions!A:K'; // adjust to match your sheet tab name
-
-  const values = [[
-    row.bar_name,
-    row.website,
-    row.address,
-    '',             // maps_url (to be filled manually during review)
-    row.city,
-    row.size_l,
-    row.price_nok,
-    row.approved,
-    row.last_verified,
-    row.price_per_litre,
-    row.submitted_at,
-  ]];
-
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}:append?valueInputOption=RAW`;
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ values }),
-  });
-
-  if (!resp.ok) {
-    const err = await resp.text();
-    throw new Error(`Sheets API error ${resp.status}: ${err}`);
-  }
-}
-
-// ── Google OAuth2 service account token ───────────────────────
-async function getGoogleAccessToken(key) {
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const claim  = {
-    iss: key.client_email,
-    scope: 'https://www.googleapis.com/auth/spreadsheets',
-    aud: 'https://oauth2.googleapis.com/token',
-    iat: now,
-    exp: now + 3600,
+// ── GitHub commit (first-party price list) ─────────────────────
+async function appendToGitHub(env, entry) {
+  const owner  = env.GH_OWNER  || 'StormberryAS';
+  const repo   = env.GH_REPO   || 'CheapBeer';
+  const path   = env.GH_PATH   || 'prices.json';
+  const branch = env.GH_BRANCH || 'main';
+  const api = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  const headers = {
+    'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
+    'Accept': 'application/vnd.github+json',
+    'User-Agent': 'cheapbeer-worker',
+    'X-GitHub-Api-Version': '2022-11-28',
   };
 
-  const encoder = new TextEncoder();
-  const headerB64  = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  const claimB64   = btoa(JSON.stringify(claim)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  const sigInput   = `${headerB64}.${claimB64}`;
+  // Read-modify-write with a small retry, in case two submissions race on the
+  // same file sha (the second PUT would 409 until it re-reads the new sha).
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const getResp = await fetch(`${api}?ref=${branch}`, { headers });
+    if (!getResp.ok) throw new Error(`GitHub GET ${getResp.status}: ${await getResp.text()}`);
+    const file = await getResp.json();
+    const list = JSON.parse(decodeB64(file.content));
+    if (!Array.isArray(list)) throw new Error('prices.json is not an array');
 
-  // Import the RSA private key
-  const pemBody = key.private_key.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
-  const derBuf  = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0)).buffer;
-  const cryptoKey = await crypto.subtle.importKey(
-    'pkcs8', derBuf,
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false, ['sign']
-  );
+    list.push(entry);
+    const putResp = await fetch(api, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Add price submission: ${entry.bar_name} (${entry.city})`,
+        content: encodeB64(JSON.stringify(list, null, 2) + '\n'),
+        sha: file.sha,
+        branch,
+      }),
+    });
+    if (putResp.ok) return;
+    if (putResp.status === 409) continue; // sha moved under us; re-read and retry
+    throw new Error(`GitHub PUT ${putResp.status}: ${await putResp.text()}`);
+  }
+  throw new Error('GitHub commit failed after retries (sha kept changing)');
+}
 
-  const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cryptoKey, encoder.encode(sigInput));
-  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  const jwt = `${sigInput}.${sigB64}`;
+// ── UTF-8 aware base64 (Workers expose btoa/atob over binary strings) ──────
+function encodeB64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
 
-  const tokenResp = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
-  });
-  const tokenData = await tokenResp.json();
-  if (!tokenData.access_token) throw new Error('Failed to obtain Google access token');
-  return tokenData.access_token;
+function decodeB64(b64) {
+  // GitHub returns base64 wrapped at 60 columns; strip the newlines first.
+  const bin = atob(b64.replace(/\n/g, ''));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
 
 // ── Helpers ────────────────────────────────────────────────────

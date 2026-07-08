@@ -1,16 +1,16 @@
 /* ================================================================
    CHEAPBEER — App logic
-   - Fetches data from a published Google Sheets CSV
+   - Reads the price list from a first-party prices.json (same origin,
+     committed in this repo; no Google, nothing third-party)
    - Renders a sortable, filterable table
    - Handles the submit form with Cloudflare Turnstile verification
 ================================================================ */
 
 // ── Configuration ──────────────────────────────────────────────
-// Replace these placeholders before deploying.
 const CONFIG = {
-  // Published Google Sheets CSV URL.
-  // File > Share > Publish to web > CSV > Sheet "bars"
-  sheetCsvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTXeJMwLt9czfQ4eRuRIJfDMCcptRpiLG30tP_kp0ReZoWNoXuINFxJOzxu01T_LJGJintdLl9IuakL/pub?gid=0&single=true&output=csv',
+  // First-party price list, served from this app's own origin. The submit
+  // Worker commits approved entries back to this file in the repo.
+  dataUrl: 'prices.json',
 
   // Cloudflare Worker URL for form submission + Turnstile verification
   workerUrl: 'https://cheapbeer-worker.marcos-495.workers.dev/submit',
@@ -36,10 +36,10 @@ async function loadData() {
   showTableState('loading');
 
   try {
-    const resp = await fetch(CONFIG.sheetCsvUrl, { cache: 'no-cache' });
+    const resp = await fetch(CONFIG.dataUrl, { cache: 'no-cache' });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const csv = await resp.text();
-    allRows = parseCsv(csv);
+    const data = await resp.json();
+    allRows = parseRows(data);
     populateCityFilter();
     populateBarNameList();
     applyFiltersAndRender();
@@ -50,66 +50,41 @@ async function loadData() {
   }
 }
 
-// ── CSV parser ─────────────────────────────────────────────────
-// Expected columns (first row = header):
-//   bar_name, website, address, maps_url, city, size_l, price_nok, approved, last_verified
-function parseCsv(csv) {
-  const lines = csv.trim().split('\n');
-  if (lines.length < 2) return [];
-
-  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s+/g, '_'));
+// ── Price-list parser ──────────────────────────────────────────
+// prices.json is an array of objects:
+//   { bar_name, website, address, maps_url, city, size_l, price_nok, approved, last_verified }
+// approved is a boolean (legacy "TRUE"/"FALSE" strings are also accepted).
+function parseRows(data) {
+  if (!Array.isArray(data)) return [];
 
   const rows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const values = splitCsvLine(lines[i]);
-    if (values.length < headers.length) continue;
-
-    const row = {};
-    headers.forEach((h, idx) => {
-      row[h] = (values[idx] || '').trim();
-    });
+  for (const entry of data) {
+    if (!entry || typeof entry !== 'object') continue;
 
     // Only show approved rows
-    if (row.approved && row.approved.toUpperCase() !== 'TRUE') continue;
+    const approved = entry.approved === true || String(entry.approved).toUpperCase() === 'TRUE';
+    if (!approved) continue;
 
-    const price = parseFloat(row.price_nok);
-    const size = parseFloat(row.size_l);
+    const price = parseFloat(entry.price_nok);
+    const size = parseFloat(entry.size_l);
     if (isNaN(price) || isNaN(size) || size === 0) continue;
 
-    row.price_nok_num = price;
-    row.size_l_num    = size;
-    row.price_per_litre = Math.round((price / size) * 10) / 10;
+    const row = {
+      bar_name: entry.bar_name || '',
+      website: entry.website || '',
+      address: entry.address || '',
+      maps_url: entry.maps_url || '',
+      city: entry.city || '',
+      last_verified: entry.last_verified || '',
+      price_nok_num: price,
+      size_l_num: size,
+      price_per_litre: Math.round((price / size) * 10) / 10,
+    };
 
     rows.push(row);
   }
 
   return rows;
-}
-
-// Handles quoted fields in CSV
-function splitCsvLine(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (ch === ',' && !inQuotes) {
-      result.push(current);
-      current = '';
-    } else {
-      current += ch;
-    }
-  }
-  result.push(current);
-  return result;
 }
 
 // ── Filter & sort ──────────────────────────────────────────────
