@@ -10,9 +10,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- SEO -->
-  <title>CheapBeer | Cheapest Draft Pils in Norway</title>
+  <title>CheapBeer | Lowest listed Draft Pils in Norway</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <meta name="description" content="Find the cheapest draft pils beer in Norwegian bars. Crowdsourced, always up to date. Sort by price or price per litre." />
+  <meta name="description" content="Find the lowest listed draft pils beer in Norwegian bars. Crowdsourced, always up to date. Sort by price or price per litre." />
 
   <!-- Local Fonts: Inter -->
   <link rel="stylesheet" href="fonts/inter/inter.css" />
@@ -21,10 +21,12 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="gate.css" />
+  <script src="gate.js" defer></script>
   <link rel="canonical" href="https://beer.stormberry.as/" />
   <link rel="preload" href="fonts/inter/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <meta property="og:title" content="CheapBeer | Cheapest Draft Pils in Norway" />
-  <meta property="og:description" content="Find the cheapest draft pils beer in Norwegian bars. Crowdsourced, always up to date. Sort by price or price per litre." />
+  <meta property="og:title" content="CheapBeer | Lowest listed Draft Pils in Norway" />
+  <meta property="og:description" content="Find the lowest listed draft pils beer in Norwegian bars. Crowdsourced, always up to date. Sort by price or price per litre." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://beer.stormberry.as/" />
   <meta property="og:image" content="https://stormberry.as/og-image.jpg" />
@@ -33,8 +35,8 @@
   <meta property="og:site_name" content="Stormberry Labs" />
   <meta property="og:locale" content="en_GB" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="CheapBeer | Cheapest Draft Pils in Norway" />
-  <meta name="twitter:description" content="Find the cheapest draft pils beer in Norwegian bars. Crowdsourced, always up to date. Sort by price or price per litre." />
+  <meta name="twitter:title" content="CheapBeer | Lowest listed Draft Pils in Norway" />
+  <meta name="twitter:description" content="Find the lowest listed draft pils beer in Norwegian bars. Crowdsourced, always up to date. Sort by price or price per litre." />
   <meta name="twitter:image" content="https://stormberry.as/og-image.jpg" />
   <script type="application/ld+json">
 {
@@ -42,7 +44,7 @@
   "@type": "WebApplication",
   "name": "CheapBeer",
   "url": "https://beer.stormberry.as/",
-  "description": "Find the cheapest draft pils beer in Norwegian bars. Crowdsourced, always up to date. Sort by price or price per litre.",
+  "description": "Find the lowest listed draft pils beer in Norwegian bars. Crowdsourced, always up to date. Sort by price or price per litre.",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Any (modern web browser)",
   "browserRequirements": "Requires JavaScript",
@@ -104,7 +106,7 @@
 
       <div class="header-text">
         <h1>CheapBeer</h1>
-        <p class="tagline">CHEAPEST DRAFT PILSNER · NORWAY<br>crowdsourced &amp; always fresh</p>
+        <p class="tagline">lowest listed DRAFT PILSNER · NORWAY<br>crowdsourced &amp; always fresh</p>
       </div>
     </div>
   </header>
@@ -162,7 +164,7 @@
 
       <!-- Table (revealed after load) -->
       <div id="table-wrapper" class="table-wrapper" hidden>
-        <table class="beer-table" aria-label="Cheapest draft pils">
+        <table class="beer-table" aria-label="Lowest listed draft pils">
           <thead>
             <tr>
               <th class="col-bar sortable" data-sort="bar_name">

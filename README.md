@@ -1,6 +1,6 @@
 # CheapBeer
 
-Crowdsourced tracker for the cheapest draft pilsner across bars in Norway. Built by [Stormberry AS](https://stormberry.as).
+Crowdsourced tracker for draft pilsner prices across bars in Norway. Built by [Stormberry AS](https://stormberry.as).
 
 **Live:** [beer.stormberry.as](https://beer.stormberry.as)
 
@@ -22,3 +22,15 @@ CheapBeer is an independent data project for educational and informational purpo
 
 ## Credits
 Built by [Stormberry AS](https://stormberry.as). Proudly powered by sovereign AI agents.
+
+## Disclaimer
+
+Supplied free of charge, **as is**, with no warranty of any kind. Using it creates no client or advisory relationship with Stormberry AS, and nothing it produces is professional advice.
+
+**Alcohol is harmful.** The WHO states that no level of alcohol consumption is safe for health, and it is linked to liver disease, several cancers, mental illness and dependency. Do not drink to excess. Never drink and drive or operate machinery; Norway's limit is 0.2 per mille and the safe amount before driving is none. Help: **Rustelefonen 08588**.
+
+**This application does not promote or incentivise drinking, and endorses no establishment listed.** It is a price list. No venue pays to appear and none is affiliated with Stormberry AS. Prices are submitted by the public, are unverified, may have been completed with AI assistance, and go stale. Ask at the bar.
+
+This is a **functioning prototype**, not a certified instrument and not a professional service. Values are computed or modelled, not measured. Check anything that matters against an authoritative source before you act on it. Stormberry AS reimburses no cost or loss arising from use of this application.
+
+Full terms: [DISCLAIMER.md](DISCLAIMER.md).
