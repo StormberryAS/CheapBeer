@@ -10,7 +10,7 @@
   'use strict';
 
   var APP_ID = 'cheapbeer';
-  var VERSION = '1';
+  var VERSION = '2';
   var MANDATORY = true;
 
   /* The version rides in the key so that materially new wording re-prompts
@@ -63,6 +63,7 @@
     '<div class="sb-gate-scroll">',
     '<div class="sb-gate-body" id="' + BODY_ID + '">',
     '<p>This is a functioning prototype, published to show what Stormberry AS builds. It is not a certified instrument, not a professional service, and not a substitute for an authoritative source.</p>',
+    '<p>It is <strong>not a finished product</strong>, it is not maintained as one, and <strong>it will eventually stop working</strong>: data moves, interfaces change, and nothing here is kept in step with them. Its purpose is to show a potential use of AI, making a possibility visible quickly so it can be judged and then built properly if it is worth building.</p>',
     '<p><strong>Alcohol is harmful.</strong> The World Health Organization states that no level of alcohol consumption is safe for health. Do not drink to excess, and never drink and drive or operate machinery; Norway\'s limit is 0.2 per mille. If alcohol is a problem for you or someone close to you, Rustelefonen is 08588.</p>',
     '<p>The legal drinking age in Norway is 18 for beer and wine and 20 for spirits. <strong>This differs by country, and you must follow the law where you are.</strong> This app does not promote, encourage or incentivise drinking, and it endorses no establishment listed.</p>',
     '<p>Prices are crowdsourced and unverified, some entries may be AI-assisted, and all of them go stale. Ask at the bar.</p>',

@@ -8,6 +8,12 @@ This is a **functioning prototype**, published to show what Stormberry AS builds
 It is **not a certified instrument, not a professional service, and not a
 substitute for an authoritative source**.
 
+It is **not a finished product**, it is not maintained as one, and **it will
+eventually stop working**: data moves, interfaces change, and nothing here is
+kept in step with them. Its purpose is to show a potential use of AI, making a
+possibility visible quickly so it can be judged and then built properly if it is
+worth building.
+
 It is offered in that spirit: real work, openly published, free to use, and
 carrying no promise beyond what is written below.
 
