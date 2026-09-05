@@ -1,0 +1,23 @@
+# GitHub Pages serves beer.stormberry.as from this repository root.
+#
+# Without this file Jekyll publishes the WHOLE repository, so the tooling scripts, the
+# README and the licence were all reachable from the live site. Nothing here was secret,
+# these repos are public, but source and tooling have no business being served next to
+# the product.
+#
+# Added 2026-09-05 in the estate-wide sweep that followed finding
+# scheduler.stormberry.as/index.dev.html live, a second working rendering of that app.
+#
+# Jekyll's `exclude` REPLACES its defaults rather than adding to them, which is why
+# node_modules/ and friends are listed where they apply.
+#
+# disclaimer.html and privacy.html are deliberately NOT excluded: they are the published
+# pages the footer links to. Only the Markdown sources are withheld.
+#
+# worker/ is the Cloudflare Worker source, not part of the site. prices.json is NOT
+# excluded: app.js reads it at runtime (dataUrl: 'prices.json').
+exclude:
+  - LICENSE
+  - README.md
+  - bump_assets.py
+  - worker/
