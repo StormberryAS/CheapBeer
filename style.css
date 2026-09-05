@@ -773,3 +773,16 @@ label {
 
 /* Visible keyboard focus (WCAG 2.4.7) */
 :focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:4px}
+
+/* Footer legibility. Without this the Privacy and Disclaimer links fall back to
+   the browser default #0000EE, which is about 2.1:1 on this footer and fails WCAG
+   AA. Uses the same accent as the credit links above rather than a new colour.
+   The underline is deliberately kept: colour must not be the only thing marking a
+   link. Added 2026-09-05. */
+.footer-bottom a {
+  color: var(--accent-blue);
+}
+
+.footer-bottom a:hover {
+  color: var(--text-primary);
+}
