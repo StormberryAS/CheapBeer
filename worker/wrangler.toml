@@ -2,15 +2,42 @@ name = "cheapbeer-worker"
 main = "index.js"
 compatibility_date = "2024-01-01"
 
-# First-party price list lives in the GitHub repo; the Worker commits approved
-# submissions to it. Override any of these if the repo/path/branch changes.
-[vars]
-GH_OWNER = "StormberryAS"
-GH_REPO = "CheapBeer"
-GH_PATH = "prices.json"
-GH_BRANCH = "main"
+# Pending submissions are kept PRIVATELY in Workers KV until they are reviewed.
+# Nothing is written to the public StormberryAS/CheapBeer repository any more;
+# approved entries are copied into prices.json by hand (tools/review_submissions.py,
+# see README.md).
+#
+# One-time setup: create the namespace and paste its id below.
+#   wrangler kv namespace create cheapbeer-submissions
+# Until the placeholder is replaced, `wrangler deploy` fails, so this version can
+# never go live without its private store.
+[[kv_namespaces]]
+binding = "SUBMISSIONS"
+id = "b374b9345d5f45ff809bcfed7d206fc6"
 
-# Deploy with:
-#   wrangler secret put TURNSTILE_SECRET_KEY
-#   wrangler secret put GITHUB_TOKEN     # fine-grained PAT, Contents:read+write on StormberryAS/CheapBeer only
-#   wrangler deploy
+# Worker-native rate limiting, the same pattern as the contact-form Worker in
+# stormberry-website/cloudflare-worker. This Worker has no [[routes]] block, so it
+# is served from its workers.dev subdomain and no zone WAF rule can apply to it.
+#   CHEAPBEER_RATE_LIMIT_IP   caps one source.
+#   CHEAPBEER_RATE_LIMIT_ALL  caps all sources together (key "all"), so a scripted
+#                             flood from many addresses is bounded too.
+# namespace_id is account-wide: 1001 and 1002 belong to the contact-form Worker,
+# so do not reuse them here. period must be 10 or 60.
+[[unsafe.bindings]]
+name = "CHEAPBEER_RATE_LIMIT_IP"
+type = "ratelimit"
+namespace_id = "1003"
+simple = { limit = 5, period = 60 }
+
+[[unsafe.bindings]]
+name = "CHEAPBEER_RATE_LIMIT_ALL"
+type = "ratelimit"
+namespace_id = "1004"
+simple = { limit = 30, period = 60 }
+
+# Secrets (set with `wrangler secret put <NAME>`, never committed):
+#   TURNSTILE_SECRET_KEY   Turnstile secret for sitekey 0x4AAAAAADADdvMUn6NJO4CE
+#
+# GITHUB_TOKEN is NOT used any more. Delete it from the Worker
+# (`wrangler secret delete GITHUB_TOKEN`) and revoke the token on GitHub, so no
+# version of this Worker can write to the public repository again.

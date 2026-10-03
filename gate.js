@@ -72,7 +72,7 @@
     '<p class="sb-gate-ack">I understand this is a prototype. Its figures are calculated, not measured, and I will check anything important against an official source.</p>',
     '<div class="sb-gate-actions">',
     '<button type="button" class="sb-gate-btn">I understand, continue</button>',
-    '<a class="sb-gate-link" href="DISCLAIMER.md">Read the full disclaimer</a>',
+    '<a class="sb-gate-link" href="disclaimer.html">Read the full disclaimer</a>',
     '</div>'
   ].join('');
 

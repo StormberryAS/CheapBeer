@@ -541,6 +541,13 @@ label {
   color: var(--accent-rose);
 }
 
+/* Waiting for the spam check, which starts on first use of the form. */
+.submit-msg.info {
+  background: rgba(79, 195, 247, 0.08);
+  border: 1px solid rgba(79, 195, 247, 0.3);
+  color: var(--accent-blue);
+}
+
 /* ── LOADING SPINNER ────────────────────────────────────────── */
 .spinner {
   width: 36px;

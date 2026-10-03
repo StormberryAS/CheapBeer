@@ -3,17 +3,25 @@
    - Reads the price list from a first-party prices.json (same origin,
      committed in this repo; no Google, nothing third-party)
    - Renders a sortable, filterable table
-   - Handles the submit form with Cloudflare Turnstile verification
+   - Handles the submit form with Cloudflare Turnstile verification.
+     Turnstile is loaded only when the visitor starts using the form,
+     never with the page.
 ================================================================ */
 
 // ── Configuration ──────────────────────────────────────────────
 const CONFIG = {
-  // First-party price list, served from this app's own origin. The submit
-  // Worker commits approved entries back to this file in the repo.
+  // First-party price list, served from this app's own origin. Submissions
+  // are held privately and reach this file only after review (README.md).
   dataUrl: 'prices.json',
 
   // Cloudflare Worker URL for form submission + Turnstile verification
   workerUrl: 'https://cheapbeer-worker.marcos-495.workers.dev/submit',
+
+  // Turnstile script, explicit rendering. Loaded on first use of the form.
+  turnstileScript: 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=cheapbeerTurnstileLoaded',
+
+  // How long a submit waits for the spam check before giving up.
+  turnstileWaitMs: 30000,
 };
 
 // ── Data & state ───────────────────────────────────────────────
@@ -311,17 +319,40 @@ function bindFilters() {
 }
 
 // ── Submit form ────────────────────────────────────────────────
+let submitBtnHtml = '';
+let submitting = false;
+
 function bindSubmitForm() {
   const form = document.getElementById('submit-form');
+  submitBtnHtml = document.getElementById('submit-btn').innerHTML;
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    await handleSubmit();
+    if (submitting) return;
+    submitting = true;
+    try {
+      await handleSubmit();
+    } finally {
+      submitting = false;
+    }
   });
+
+  // Nothing is fetched from Cloudflare until the visitor starts using the
+  // form: the first focus on any of its fields, or the first input.
+  const start = () => {
+    form.removeEventListener('focusin', start);
+    form.removeEventListener('input', start);
+    loadTurnstile();
+  };
+  form.addEventListener('focusin', start);
+  form.addEventListener('input', start);
 }
 
 async function handleSubmit() {
   const btn = document.getElementById('submit-btn');
   const msgEl = document.getElementById('submit-msg');
+
+  // Covers a browser that submits without focusing anything in the form.
+  loadTurnstile();
 
   // Basic client-side validation
   const barName  = document.getElementById('f-bar').value.trim();
@@ -351,14 +382,25 @@ async function handleSubmit() {
     return;
   }
 
-  // Get Turnstile token
-  const turnstileToken = getTurnstileToken();
+  btn.disabled = true;
+
+  // The spam check starts when the form is first used, so a quick visitor can
+  // get here before it has finished. Wait for it rather than refusing.
+  let turnstileToken = turnstileState.token;
   if (!turnstileToken) {
-    showSubmitMsg(msgEl, 'error', 'Please complete the human verification above.');
-    return;
+    btn.textContent = 'Checking…';
+    showSubmitMsg(msgEl, 'info', 'One moment: the spam check is still running. If a checkbox appears above the button, tick it.');
+    turnstileToken = await waitForTurnstileToken(CONFIG.turnstileWaitMs);
+    if (!turnstileToken) {
+      showSubmitMsg(msgEl, 'error', turnstileState.loadFailed
+        ? 'The spam check could not load. Check your connection and try again.'
+        : 'The spam check did not finish. Please try again.');
+      btn.disabled = false;
+      btn.innerHTML = submitBtnHtml;
+      return;
+    }
   }
 
-  btn.disabled = true;
   btn.textContent = 'Sending…';
   msgEl.hidden = true;
 
@@ -388,17 +430,17 @@ async function handleSubmit() {
     } else {
       const msg = data.message || `Server error (${resp.status}). Please try again.`;
       showSubmitMsg(msgEl, 'error', msg);
+      // A 400 is refused before the Worker checks the token, so the token is
+      // still good. Anything else may have spent it: get a fresh one.
+      if (resp.status !== 400) resetTurnstile();
     }
   } catch (err) {
     showSubmitMsg(msgEl, 'error', 'Could not reach the server. Please try again later.');
     console.error('CheapBeer: submit failed', err);
+    resetTurnstile();
   } finally {
     btn.disabled = false;
-    btn.innerHTML = `
-      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" width="18" height="18">
-        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
-      </svg>
-      Submit price`;
+    btn.innerHTML = submitBtnHtml;
   }
 }
 
@@ -408,16 +450,83 @@ function showSubmitMsg(el, type, text) {
   el.hidden = false;
 }
 
-// ── Turnstile helpers ──────────────────────────────────────────
-function getTurnstileToken() {
-  // Turnstile sets a hidden input named "cf-turnstile-response" inside the widget
-  const input = document.querySelector('[name="cf-turnstile-response"]');
-  return input ? input.value : null;
+// ── Turnstile, loaded on first use of the form ─────────────────
+// Someone who only reads the price list never contacts
+// challenges.cloudflare.com: the script is added to the page, and the widget
+// rendered, the first time the visitor focuses or types in the form.
+const turnstileState = {
+  started: false,     // script tag added
+  loadFailed: false,  // script could not be fetched, or the widget not rendered
+  widgetId: null,
+  token: null,        // current unspent token, from the widget's callback
+  waiters: [],        // submits waiting for a token
+};
+
+function loadTurnstile() {
+  if (turnstileState.started) return;
+  turnstileState.started = true;
+  turnstileState.loadFailed = false;
+  window.cheapbeerTurnstileLoaded = renderTurnstile;
+  const script = document.createElement('script');
+  script.src = CONFIG.turnstileScript;
+  script.async = true;
+  script.onerror = () => {
+    // Allow the next submit to try again, for example after a dropped connection.
+    script.remove();
+    turnstileState.started = false;
+    turnstileState.loadFailed = true;
+    settleTurnstile(null);
+  };
+  document.head.appendChild(script);
+}
+
+function renderTurnstile() {
+  const box = document.getElementById('turnstile-box');
+  try {
+    turnstileState.widgetId = window.turnstile.render(box, {
+      sitekey: box.dataset.sitekey,
+      theme: 'dark',
+      callback: token => {
+        turnstileState.token = token;
+        settleTurnstile(token);
+      },
+      'expired-callback': () => { turnstileState.token = null; },
+      // Turnstile retries on its own; a waiting submit gives up on its timer.
+      'error-callback': () => { turnstileState.token = null; },
+    });
+  } catch (err) {
+    turnstileState.loadFailed = true;
+    settleTurnstile(null);
+    console.error('CheapBeer: Turnstile render failed', err);
+  }
+}
+
+function settleTurnstile(token) {
+  const waiting = turnstileState.waiters;
+  turnstileState.waiters = [];
+  waiting.forEach(done => done(token));
+}
+
+function waitForTurnstileToken(ms) {
+  if (turnstileState.token) return Promise.resolve(turnstileState.token);
+  if (turnstileState.loadFailed) return Promise.resolve(null);
+  return new Promise(resolve => {
+    const timer = setTimeout(() => {
+      turnstileState.waiters = turnstileState.waiters.filter(w => w !== done);
+      resolve(null);
+    }, ms);
+    function done(token) {
+      clearTimeout(timer);
+      resolve(token);
+    }
+    turnstileState.waiters.push(done);
+  });
 }
 
 function resetTurnstile() {
-  if (window.turnstile) {
-    window.turnstile.reset();
+  turnstileState.token = null;
+  if (window.turnstile && turnstileState.widgetId !== null) {
+    window.turnstile.reset(turnstileState.widgetId);
   }
 }
 

@@ -14,10 +14,12 @@
 # disclaimer.html and privacy.html are deliberately NOT excluded: they are the published
 # pages the footer links to. Only the Markdown sources are withheld.
 #
-# worker/ is the Cloudflare Worker source, not part of the site. prices.json is NOT
-# excluded: app.js reads it at runtime (dataUrl: 'prices.json').
+# worker/ is the Cloudflare Worker source and tools/ the review script, neither part
+# of the site. prices.json is NOT excluded: app.js reads it at runtime
+# (dataUrl: 'prices.json').
 exclude:
   - LICENSE
   - README.md
   - bump_assets.py
+  - tools/
   - worker/

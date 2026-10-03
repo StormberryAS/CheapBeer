@@ -58,9 +58,8 @@ employer.
 Norway is 18 for beer and wine and 20 for spirits.
 
 **The prices are unverified and are not supplied by the establishments.** They are
-submitted by members of the public and auto-approved once three submissions agree,
-a mechanism that resists casual error and defeats nobody determined to enter
-nonsense. Some entries may have been produced or completed with AI assistance.
+submitted by members of the public and reviewed before they appear, a check that
+catches obvious mistakes but cannot confirm what a bar actually charges. Some entries may have been produced or completed with AI assistance.
 Prices go stale, differ by time of day, by measure, by tap and by day of the week,
 and may simply be wrong. Ask at the bar.
 

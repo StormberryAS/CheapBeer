@@ -17,12 +17,9 @@
   <!-- Local Fonts: Inter -->
   <link rel="stylesheet" href="fonts/inter/inter.css?v=868d674e" />
 
-  <!-- Cloudflare Turnstile -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-
-  <link rel="stylesheet" href="style.css?v=e7673373" />
+  <link rel="stylesheet" href="style.css?v=635045db" />
   <link rel="stylesheet" href="gate.css?v=a899ab25" />
-  <script src="gate.js?v=06ed39a0" defer></script>
+  <script src="gate.js?v=23d9a477" defer></script>
   <link rel="canonical" href="https://beer.stormberry.as/" />
   <link rel="preload" href="fonts/inter/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
   <meta property="og:title" content="CheapBeer | Lowest listed Draft Pils in Norway" />
@@ -204,7 +201,7 @@
         </svg>
         Add or update a price
       </h2>
-      <p class="section-hint">Spotted a cheap pils? Share it. New bars require manual review. Price updates from 3 matching submissions are auto-approved.</p>
+      <p class="section-hint">Spotted a cheap pils? Share it. Every submission is reviewed before it appears.</p>
 
       <form id="submit-form" novalidate>
 
@@ -241,11 +238,11 @@
           </div>
         </div>
 
-        <!-- Cloudflare Turnstile widget -->
+        <!-- Cloudflare Turnstile widget. app.js loads the script and renders
+             it only when the visitor starts using this form, never with the
+             page. -->
         <div class="turnstile-wrapper">
-          <div class="cf-turnstile"
-               data-sitekey="0x4AAAAAADADdvMUn6NJO4CE"
-               data-theme="dark"></div>
+          <div id="turnstile-box" data-sitekey="0x4AAAAAADADdvMUn6NJO4CE"></div>
         </div>
 
         <button type="submit" id="submit-btn" class="btn btn-primary">
@@ -253,7 +250,7 @@
           Submit price
         </button>
 
-        <p id="submit-msg" class="submit-msg" hidden></p>
+        <p id="submit-msg" class="submit-msg" role="status" hidden></p>
 
       </form>
 
@@ -487,12 +484,12 @@
             </div>
 
       <p>&copy; 2026 Stormberry AS · <a href="https://virksomhet.brreg.no/nb/oppslag/enheter/937751249" target="_blank" rel="noopener noreferrer" title="Brønnøysundregistrene: Stormberry AS">Org.nr. NO 937 751 249</a> · Askøy, Norway · <a href="https://stormberry.as/privacy.html" target="_blank" rel="noopener noreferrer">Privacy</a> &middot; <a href="disclaimer.html">Disclaimer</a></p>
-      <p class="footer-privacy">Privacy First: We do not collect cookies or personal data.</p>
+      <p class="footer-privacy">Privacy First: No cookies and no analytics. A price you submit is sent to us and reviewed before it is published; see <a href="https://stormberry.as/privacy#labs" target="_blank" rel="noopener noreferrer">Privacy</a>.</p>
       <p class="footer-ai">Proudly powered by sovereign AI agents.</p>
 
     </div><!-- /footer-bottom -->
   </footer>
 
-  <script src="app.js?v=df839fb7"></script>
+  <script src="app.js?v=c6c81d35"></script>
 </body>
 </html>
