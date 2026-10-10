@@ -562,43 +562,177 @@ label {
   to { transform: rotate(360deg); }
 }
 
-/* ── FOOTER — Stormberry Branding ─────────────────────────────── */
-.site-footer {
-  background: var(--bg-base);
+/* ---- App switcher carousel ---------------------------------------- */
+/* Stormberry chrome, the MetadataScrubber design (2026-10). The track
+   holds 10 identical sets of cards and slides by exactly one set
+   (-10%), so the loop is seamless. Change the number of sets and the
+   shift together. The page's own app is the last card of each set. */
+.app-switcher-container {
+  padding: 3rem 0;
+  margin-top: 2rem;
+  text-align: center;
   border-top: 1px solid var(--border);
-  padding: 4rem 1.5rem 2rem;
-  margin-top: auto;
+  line-height: 1.6;
+  color-scheme: dark;
 }
 
-.footer-inner {
-  max-width: 860px;
-  margin: 0 auto;
+.switcher-title {
+  margin: 0 0 1.5rem;
+  padding: 0 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  color: var(--text-secondary);
+}
+
+.app-switcher-marquee {
   display: flex;
+  width: 100%;
+  overflow: hidden;
+  padding: 0.5rem 1rem 1.5rem;
+}
+
+.app-switcher-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+
+.app-switcher-marquee:hover .app-switcher-track,
+.app-switcher-marquee:focus-within .app-switcher-track { animation-play-state: paused; }
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-10%); }
+}
+
+.switcher-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-right: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.switcher-card:hover {
+  transform: translateY(-3px);
+  background: var(--bg-card-hover);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  color: var(--text-primary);
+}
+
+.switcher-card img {
+  width: 32px;
+  height: 32px;
+  opacity: 0.9;
+}
+
+/* A visible focus ring on the dark chrome, whatever the page does elsewhere */
+.app-switcher-container a:focus-visible,
+.site-footer a:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* ---- Carousel and footer access (2026-10-10) ---------------------- */
+/* The page's own app, the last card of every set, is marked for screen
+   readers (aria-current) and for the eye (an accent border). */
+.switcher-card[aria-current="page"] { border-color: var(--accent-blue); }
+
+/* Rounded focus ring, whatever corner radius the page's own ring uses */
+.switcher-card:focus-visible { border-radius: 12px; }
+
+/* Keyboard focus stops the slide and the row scrolls to the focused card,
+   so it is never off-screen. :focus-visible and not :focus-within, so a
+   mouse click does not move the card from under the pointer. */
+.app-switcher-marquee:has(.switcher-card:focus-visible) { overflow-x: auto; }
+.app-switcher-marquee:has(.switcher-card:focus-visible) .app-switcher-track { animation: none; }
+
+/* The pause tick box (WCAG 2.2.2): ticked, the slide stops and the row
+   scrolls by hand. Plain CSS, no script. `all: revert` keeps the page's
+   own form styles off it. */
+.app-switcher-container input.switcher-pause {
+  all: revert;
+  margin: 0 0.5rem 0.75rem 0;
+  vertical-align: middle;
+  accent-color: var(--accent-blue);
+  cursor: pointer;
+}
+
+.app-switcher-container label.switcher-pause-label {
+  all: revert;
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  vertical-align: middle;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.app-switcher-container input.switcher-pause:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.switcher-pause:checked ~ .app-switcher-marquee { overflow-x: auto; }
+.switcher-pause:checked ~ .app-switcher-marquee .app-switcher-track { animation: none; }
+
+/* A footer link never breaks inside itself (the org.nr. did at 320 px) */
+.footer-bottom p a { white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Nothing slides, so there is nothing to pause. */
+  .app-switcher-container input.switcher-pause,
+  .app-switcher-container label.switcher-pause-label { display: none; }
+}
+
+/* ---- Footer -------------------------------------------------------- */
+.site-footer {
+  margin-top: auto;
+  padding: 4rem 1.5rem 2rem;
+  background: var(--bg-base);
+  border-top: 1px solid var(--border);
+  line-height: 1.6;
+}
+
+.site-footer p { margin: 0; }
+
+.footer-inner {
+  max-width: 680px;
+  margin: 0 auto 3rem;
+  display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 3rem;
-  flex-wrap: wrap;
   gap: 2rem;
 }
 
 .footer-brand { max-width: 320px; }
 
 .footer-logo {
-  font-family: var(--font-sans);
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  font-family: inherit;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
   text-decoration: none;
-  display: inline-block;
-  margin-bottom: 0.5rem;
 }
 
-.footer-dot {
-  background: linear-gradient(135deg, #E21E26, #FF4D54);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+.footer-logo:hover { color: var(--text-primary); }
+.footer-dot { background: linear-gradient(135deg, #E21E26, #FF4D54); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 .footer-tagline {
   color: var(--text-secondary);
@@ -607,68 +741,66 @@ label {
 }
 
 .footer-powered p {
+  max-width: 250px;
   color: var(--text-secondary);
   font-size: 0.88rem;
-  text-align: right;
-  max-width: 260px;
   line-height: 1.6;
 }
 
-.footer-powered a {
+/* Credit links read as links, as the legal links do */
+.footer-powered a,
+.footer-bottom p a {
   color: var(--accent-blue);
-  text-decoration: none;
-  transition: color var(--t-fast);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 150ms ease;
 }
 
-.footer-powered a:hover { color: var(--accent-gold); }
+.footer-powered a:hover,
+.footer-bottom p a:hover { color: var(--text-primary); }
 
 .footer-bottom {
-  max-width: 860px;
+  max-width: 680px;
   margin: 0 auto;
-  text-align: center;
   padding-top: 2rem;
-  border-top: 1px solid var(--border);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
 }
 
-.footer-social {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 0.5rem;
-}
+.footer-social { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.25rem; }
+.footer-social a { color: var(--text-secondary); transition: color 150ms ease, transform 150ms ease; }
+.footer-social a:hover { color: var(--text-primary); transform: translateY(-2px); }
+.footer-social svg { display: block; }
 
-.footer-social a {
+.footer-bottom p { color: var(--text-secondary); font-size: 0.85rem; }
+
+/* The public test of an app's privacy claim, where it makes one */
+.footer-bottom .footer-offline {
   color: var(--text-secondary);
-  transition: all var(--t-fast);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
-.footer-social a:hover {
-  color: #E21E26;
-  transform: translateY(-2px);
+.footer-privacy, .footer-ai { opacity: 0.85; }
+
+@media (min-width: 720px) {
+  .switcher-title { padding: 0 2rem; }
+  .app-switcher-marquee { padding: 0.5rem 2rem 1.5rem; }
+  .footer-powered p { text-align: right; }
 }
 
-.footer-bottom p { margin: 0; }
-
-.footer-privacy {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  opacity: 0.8;
-  margin-top: 0.25rem !important;
-}
-
-.footer-ai {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  opacity: 0.7;
-  margin-top: 0.15rem !important;
+@media (prefers-reduced-motion: reduce) {
+  /* No sliding: the carousel becomes a row the reader scrolls. */
+  .app-switcher-track { animation: none; }
+  .app-switcher-marquee { overflow-x: auto; }
+  .switcher-card,
+  .footer-social a { transition: none; }
+  .switcher-card:hover,
+  .footer-social a:hover { transform: none; }
 }
 
 /* ── UTILITIES ──────────────────────────────────────────────── */
@@ -690,106 +822,7 @@ label {
   .filter-row {
     grid-template-columns: 1fr;
   }
-
-  .footer-inner {
-    flex-direction: column;
-    text-align: center;
-    align-items: center;
-  }
-
-  .footer-powered p {
-    text-align: center;
-    max-width: 100%;
-  }
-}
-
-/* App Switcher Carousel */
-.app-switcher-container {
-  padding: 3rem 0;
-  text-align: center;
-  margin-top: 2rem;
-  border-top: 1px solid var(--border-color, var(--border, rgba(255,255,255,0.08)));
-}
-
-.switcher-title {
-  font-size: 1.2rem;
-  margin-bottom: 1.5rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  letter-spacing: -0.5px;
-}
-
-.app-switcher-marquee {
-  display: flex;
-  overflow: hidden;
-  padding-bottom: 1rem;
-  width: 100%;
-}
-
-.app-switcher-track {
-  display: flex;
-  width: max-content;
-  animation: marquee 30s linear infinite;
-}
-
-.app-switcher-marquee:hover .app-switcher-track {
-  animation-play-state: paused;
-}
-
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-10%); }
-}
-
-.switcher-card {
-  background: var(--bg-secondary, var(--bg-card, rgba(255,255,255,0.05)));
-  border: 1px solid var(--border-color, var(--border, rgba(255,255,255,0.08)));
-  border-radius: 12px;
-  padding: 1rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  color: var(--text-primary);
-  text-decoration: none;
-  font-weight: 600;
-  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-right: 1rem;
-}
-
-.switcher-card:hover {
-  transform: translateY(-3px);
-  background: var(--bg-tertiary, var(--bg-card-hover, rgba(255,255,255,0.15)));
-  box-shadow: 0 4px 12px var(--shadow-color, var(--shadow-card, 0 8px 32px rgba(0,0,0,0.45)));
-}
-
-.switcher-card i {
-  width: 20px;
-  height: 20px;
-  opacity: 0.8;
-}
-
-@media (max-width: 768px) {
-  .app-switcher-marquee {
-    padding: 0.5rem 1rem 1.5rem 1rem;
-  }
 }
 
 /* Visible keyboard focus (WCAG 2.4.7) */
 :focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:4px}
-
-/* Footer legibility. Without this the Privacy and Disclaimer links fall back to
-   the browser default #0000EE, which is about 2.1:1 on this footer and fails WCAG
-   AA. Uses the same accent as the credit links above rather than a new colour.
-   The underline is deliberately kept: colour must not be the only thing marking a
-   link. Added 2026-09-05. */
-.footer-bottom a {
-  color: var(--accent-blue);
-}
-
-.footer-bottom a:hover {
-  color: var(--text-primary);
-}
