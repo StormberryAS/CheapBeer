@@ -89,6 +89,9 @@ body {
   background-attachment: fixed;
 }
 
+/* Guard: every form control uses the page font (a control does not inherit it by itself). */
+button, input, select, textarea { font-family: var(--font-sans); }
+
 /* ── Layout containers ──────────────────────────────────────── */
 .main-container {
   max-width: 860px;
@@ -665,6 +668,7 @@ label {
    own form styles off it. */
 .app-switcher-container input.switcher-pause {
   all: revert;
+  font-family: var(--font-sans);
   margin: 0 0.5rem 0.75rem 0;
   vertical-align: middle;
   accent-color: var(--accent-blue);

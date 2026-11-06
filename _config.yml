@@ -21,6 +21,11 @@
 # 6 November 2026: DISCLAIMER.md, the Markdown source of disclaimer.html, is excluded too, as the
 # comment above says it should be. No served file links or loads it: the gate and the footer link
 # disclaimer.html. Every exclude line of the earlier version stays.
+#
+# theme: null (6 November 2026): the repository sets no theme, so GitHub Pages used its default,
+# jekyll-theme-primer, and published the theme's own stylesheet as /assets/css/style.css, a file
+# nothing here links. No theme means that file is no longer published. No page changes.
+theme: null
 exclude:
   - LICENSE
   - README.md
