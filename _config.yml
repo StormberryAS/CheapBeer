@@ -17,9 +17,14 @@
 # worker/ is the Cloudflare Worker source and tools/ the review script, neither part
 # of the site. prices.json is NOT excluded: app.js reads it at runtime
 # (dataUrl: 'prices.json').
+#
+# 6 November 2026: DISCLAIMER.md, the Markdown source of disclaimer.html, is excluded too, as the
+# comment above says it should be. No served file links or loads it: the gate and the footer link
+# disclaimer.html. Every exclude line of the earlier version stays.
 exclude:
   - LICENSE
   - README.md
+  - DISCLAIMER.md
   - bump_assets.py
   - tools/
   - worker/
